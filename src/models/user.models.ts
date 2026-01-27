@@ -1,7 +1,11 @@
+import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
-
+@Entity()
 export class User {
-    id: number;
-    name: string;
-    cpf: string;
+  @PrimaryGeneratedColumn()
+  id: number;
+  @Column('string')
+  name: string;
+  @Column('string')
+  cpf: string;
 }
