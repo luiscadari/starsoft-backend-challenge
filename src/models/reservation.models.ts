@@ -1,23 +1,57 @@
-import { Column, Entity, ForeignKey, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  PrimaryGeneratedColumn,
+  ManyToOne,
+  JoinColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+  Index,
+} from 'typeorm';
 import { Session } from './session.models';
 import { Chair } from './chairs.models';
 import { User } from './user.models';
 
-@Entity()
+@Entity('reservations')
+@Index(['sessionId', 'chairId'], { unique: true, where: "status = 'active'" })
 export class Reservation {
   @PrimaryGeneratedColumn()
   id: number;
-  @ForeignKey(() => Session)
-  @Column('number')
+
+  @Column({ type: 'int' })
   sessionId: number;
-  @ForeignKey(() => Chair)
-  @Column('number')
+
+  @Column({ type: 'int' })
   chairId: number;
-  @ForeignKey(() => User)
-  @Column('number')
+
+  @Column({ type: 'int' })
   userId: number;
-  @Column('date')
+
+  @Column({ type: 'timestamp' })
   expiresAt: Date;
-  @Column('boolean')
-  paymentStatus: boolean;
+
+  @Column({
+    type: 'enum',
+    enum: ['active', 'confirmed', 'expired', 'cancelled'],
+    default: 'active',
+  })
+  status: 'active' | 'confirmed' | 'expired' | 'cancelled';
+
+  @ManyToOne(() => Session)
+  @JoinColumn({ name: 'sessionId' })
+  session: Session;
+
+  @ManyToOne(() => Chair)
+  @JoinColumn({ name: 'chairId' })
+  chair: Chair;
+
+  @ManyToOne(() => User)
+  @JoinColumn({ name: 'userId' })
+  user: User;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 }
