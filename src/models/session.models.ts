@@ -1,16 +1,36 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
-import type { Chair } from './chairs.models';
+import {
+  Column,
+  Entity,
+  PrimaryGeneratedColumn,
+  OneToMany,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+import { Chair } from './chairs.models';
 
-@Entity()
+@Entity('sessions')
 export class Session {
   @PrimaryGeneratedColumn()
   id: number;
-  @Column('string')
+
+  @Column({ type: 'varchar', length: 255 })
   movie: string;
-  @Column('date')
+
+  @Column({ type: 'timestamp' })
   hour: Date;
-  @Column('string')
+
+  @Column({ type: 'varchar', length: 100 })
   room: string;
-  @Column('json')
+
+  @Column({ type: 'decimal', precision: 10, scale: 2 })
+  ticketPrice: number;
+
+  @OneToMany(() => Chair, (chair) => chair.session)
   chairs: Chair[];
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 }
