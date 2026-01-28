@@ -3,8 +3,13 @@
 services:
   db:
     image: postgres
+    container_name: postgres_db
+    ports:
+      - 5432:5432
     restart: always
     # set shared memory limit when using docker compose
+    networks:
+      - app-network
     shm_size: 128mb
     environment:
       POSTGRES_PASSWORD: root
@@ -17,3 +22,43 @@ services:
       - 8080:8080
   redis:
     image: redis:latest
+    ports:
+      - 6379:6379
+    restart: always
+    networks:
+      - app-network
+  api:
+    image: node:latest
+    container_name: cinema_api
+    restart: always
+    networks:
+      - app-network
+    working_dir: /home/node/app
+    environment:
+      # Application
+      - NODE_ENV=development
+      - PORT=3000
+
+      # Database
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USERNAME=root
+      - DB_PASSWORD=root
+      - DB_DATABASE=cinema
+      - DB_LOGGING=false
+
+      # Redis
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    volumes:
+      - ./:/home/node/app
+    ports:
+      - 3000:3000
+    command: sh -c "npm install && npm run build && npm run start"
+    depends_on:
+      - db
+      - redis
+
+networks:
+  app-network:
+    driver: bridge
