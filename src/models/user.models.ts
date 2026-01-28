@@ -1,11 +1,27 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+  Index,
+} from 'typeorm';
 
-@Entity()
+@Entity('users')
 export class User {
   @PrimaryGeneratedColumn()
   id: number;
-  @Column('string')
+
+  @Column({ type: 'varchar', length: 255 })
   name: string;
-  @Column('string')
+
+  @Column({ type: 'varchar', length: 11, unique: true })
+  @Index()
   cpf: string;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 }
