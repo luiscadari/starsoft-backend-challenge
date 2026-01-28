@@ -1,0 +1,65 @@
+meta {
+  name: Get Session Availability
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/sessions/1/availability
+  body: none
+  auth: none
+}
+
+docs {
+  # Buscar disponibilidade de assentos da sessão
+
+  Esta rota retorna a disponibilidade em tempo real dos assentos de uma sessão específica.
+
+  ## Método
+  `GET /sessions/:id/availability`
+
+  ## Parâmetros de URL
+  - `id` (number): ID da sessão
+
+  ## Resposta (200 OK)
+  ```json
+  {
+    "sessionId": 1,
+    "movie": "Avatar 3",
+    "date": "2026-02-15",
+    "time": "19:30",
+    "roomNumber": 1,
+    "totalSeats": 50,
+    "availableSeats": 45,
+    "reservedSeats": 3,
+    "soldSeats": 2,
+    "chairs": [
+      {
+        "id": 1,
+        "seatNumber": 1,
+        "status": "available"
+      },
+      {
+        "id": 2,
+        "seatNumber": 2,
+        "status": "reserved"
+      },
+      {
+        "id": 3,
+        "seatNumber": 3,
+        "status": "sold"
+      }
+    ]
+  }
+  ```
+
+  ## Status dos Assentos
+  - `available`: Assento disponível para reserva
+  - `reserved`: Assento temporariamente reservado (30 segundos)
+  - `sold`: Assento vendido (não disponível)
+
+  ## Descrição
+  - Mostra a disponibilidade em tempo real de todos os assentos
+  - Inclui contadores de assentos disponíveis, reservados e vendidos
+  - Lista detalhada de cada assento com seu status atual
+}

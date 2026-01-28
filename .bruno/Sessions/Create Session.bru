@@ -1,0 +1,64 @@
+meta {
+  name: Create Session
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/sessions
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "movie": "Avatar 3",
+    "date": "2026-02-15",
+    "time": "19:30",
+    "room": "1A",
+    "ticketPrice": 12.00,
+    "chairs": 50
+  }
+}
+
+docs {
+  # Criar uma nova sessão de cinema
+  
+  Esta rota cria uma nova sessão de cinema com assentos disponíveis.
+  
+  ## Método
+  `POST /sessions`
+  
+  ## Corpo da Requisição
+  ```json
+  {
+    "movie": "string",       // Nome do filme
+    "date": "string",        // Data da sessão (formato: YYYY-MM-DD)
+    "time": "string",        // Horário da sessão (formato: HH:MM)
+    "roomNumber": number,    // Número da sala
+    "totalSeats": number     // Quantidade total de assentos
+  }
+  ```
+  
+  ## Resposta (201 Created)
+  ```json
+  {
+    "id": 1,
+    "movie": "Avatar 3",
+    "date": "2026-02-15",
+    "time": "19:30",
+    "roomNumber": 1,
+    "totalSeats": 50,
+    "createdAt": "2026-01-27T10:00:00.000Z"
+  }
+  ```
+  
+  ## Descrição
+  - Cria automaticamente os assentos para a sessão
+  - Todos os assentos são criados com status 'available' (disponível)
+  - Retorna status 201 (CREATED) quando a sessão é criada com sucesso
+}

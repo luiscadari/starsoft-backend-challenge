@@ -1,0 +1,53 @@
+meta {
+  name: Create User
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/users
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "name": "João Silva",
+    "cpf": "12345678901"
+  }
+}
+
+docs {
+  # Criar um novo usuário
+
+  Esta rota cria um novo usuário no sistema.
+
+  ## Método
+  `POST /users`
+
+  ## Corpo da Requisição
+  ```json
+  {
+    "name": "string",    // Nome do usuário
+    "cpf": "string"      // CPF do usuário (apenas números)
+  }
+  ```
+
+  ## Resposta (201 Created)
+  ```json
+  {
+    "id": 1,
+    "name": "João Silva",
+    "cpf": "12345678901",
+    "createdAt": "2026-01-27T10:00:00.000Z"
+  }
+  ```
+
+  ## Descrição
+  - Retorna status 201 (CREATED) quando o usuário é criado com sucesso
+  - O usuário criado pode ser usado para fazer reservas e compras
+}

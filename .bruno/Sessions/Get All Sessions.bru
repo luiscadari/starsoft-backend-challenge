@@ -1,0 +1,48 @@
+meta {
+  name: Get All Sessions
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/sessions
+  body: none
+  auth: none
+}
+
+docs {
+  # Listar todas as sessões
+
+  Esta rota retorna todas as sessões de cinema cadastradas no sistema.
+
+  ## Método
+  `GET /sessions`
+
+  ## Resposta (200 OK)
+  ```json
+  [
+    {
+      "id": 1,
+      "movie": "Avatar 3",
+      "date": "2026-02-15",
+      "time": "19:30",
+      "roomNumber": 1,
+      "totalSeats": 50,
+      "createdAt": "2026-01-27T10:00:00.000Z"
+    },
+    {
+      "id": 2,
+      "movie": "Duna: Parte 3",
+      "date": "2026-02-15",
+      "time": "21:00",
+      "roomNumber": 2,
+      "totalSeats": 80,
+      "createdAt": "2026-01-27T10:05:00.000Z"
+    }
+  ]
+  ```
+
+  ## Descrição
+  - Retorna um array com todas as sessões
+  - Útil para listar as opções de sessões disponíveis
+}

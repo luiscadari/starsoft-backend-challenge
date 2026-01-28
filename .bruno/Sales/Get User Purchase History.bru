@@ -1,0 +1,56 @@
+meta {
+  name: Get User Purchase History
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/sales/user/1
+  body: none
+  auth: none
+}
+
+docs {
+  # Histórico de compras por usuário
+
+  Esta rota retorna o histórico completo de compras de um usuário.
+
+  ## Método
+  `GET /sales/user/:userId`
+
+  ## Parâmetros de URL
+  - `userId` (number): ID do usuário
+
+  ## Resposta (200 OK)
+  ```json
+  [
+    {
+      "saleId": 1,
+      "sessionId": 1,
+      "movie": "Avatar 3",
+      "date": "2026-02-15",
+      "time": "19:30",
+      "roomNumber": 1,
+      "seatNumber": 1,
+      "purchaseDate": "2026-01-27T10:00:30.000Z"
+    },
+    {
+      "saleId": 2,
+      "sessionId": 1,
+      "movie": "Avatar 3",
+      "date": "2026-02-15",
+      "time": "19:30",
+      "roomNumber": 1,
+      "seatNumber": 2,
+      "purchaseDate": "2026-01-27T10:00:30.000Z"
+    }
+  ]
+  ```
+
+  ## Descrição
+  - Retorna todas as compras (vendas confirmadas) do usuário
+  - Cada registro representa um assento comprado
+  - Inclui informações completas da sessão e assento
+  - Ordenado por data de compra
+  - Útil para visualizar ingressos comprados e histórico
+}

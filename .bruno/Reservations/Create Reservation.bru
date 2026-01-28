@@ -1,0 +1,66 @@
+meta {
+  name: Create Reservation
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/reservations
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "sessionId": 1,
+    "userId": 1,
+    "chairIds": [1, 2, 3]
+  }
+}
+
+docs {
+  # Reservar assento(s)
+
+  Esta rota cria uma reserva temporária de assentos para um usuário.
+  A reserva tem validade de 30 segundos.
+
+  ## Método
+  `POST /reservations`
+
+  ## Corpo da Requisição
+  ```json
+  {
+    "sessionId": number,     // ID da sessão
+    "userId": number,        // ID do usuário
+    "chairIds": number[]     // Array com IDs dos assentos a reservar
+  }
+  ```
+
+  ## Resposta (201 Created)
+  ```json
+  {
+    "reservationId": 1,
+    "expiresAt": "2026-01-27T10:00:30.000Z",
+    "message": "Reserva criada com sucesso. Complete o pagamento em 30 segundos."
+  }
+  ```
+
+  ## Regras de Negócio
+  - A reserva expira automaticamente após 30 segundos
+  - Assentos reservados ficam temporariamente indisponíveis
+  - Após expiração, os assentos voltam a ficar disponíveis
+  - Não é possível reservar assentos já reservados ou vendidos
+
+  ## Possíveis Erros
+  - 400: Assentos já reservados ou vendidos
+  - 404: Sessão ou usuário não encontrado
+
+  ## Descrição
+  - Retorna o ID da reserva e o timestamp de expiração
+  - Use o ID da reserva para confirmar o pagamento
+  - Complete o pagamento antes da expiração para garantir os assentos
+}

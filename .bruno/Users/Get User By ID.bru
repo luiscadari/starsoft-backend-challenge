@@ -1,0 +1,37 @@
+meta {
+  name: Get User By ID
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/users/1
+  body: none
+  auth: none
+}
+
+docs {
+  # Buscar usuário por ID
+
+  Esta rota busca um usuário específico pelo seu ID.
+
+  ## Método
+  `GET /users/:id`
+
+  ## Parâmetros de URL
+  - `id` (number): ID do usuário
+
+  ## Resposta (200 OK)
+  ```json
+  {
+    "id": 1,
+    "name": "João Silva",
+    "cpf": "12345678901",
+    "createdAt": "2026-01-27T10:00:00.000Z"
+  }
+  ```
+
+  ## Descrição
+  - Retorna os dados do usuário se encontrado
+  - Retorna `null` se o usuário não existir
+}

@@ -1,0 +1,64 @@
+meta {
+  name: Confirm Payment
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/reservations/confirm-payment
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "reservationId": 1,
+    "userId": 1
+  }
+}
+
+docs {
+  # Confirmar pagamento de uma reserva
+
+  Esta rota converte uma reserva temporária em venda definitiva.
+
+  ## Método
+  `POST /reservations/confirm-payment`
+
+  ## Corpo da Requisição
+  ```json
+  {
+    "reservationId": number,  // ID da reserva a confirmar
+    "userId": number          // ID do usuário (validação)
+  }
+  ```
+
+  ## Resposta (200 OK)
+  ```json
+  {
+    "success": true,
+    "saleIds": [1, 2, 3]
+  }
+  ```
+
+  ## Regras de Negócio
+  - A reserva deve estar dentro do prazo de validade (30 segundos)
+  - O userId deve corresponder ao usuário da reserva
+  - Converte todos os assentos reservados em vendidos
+  - Cria registros de venda para cada assento
+  - Publica evento de venda confirmada
+
+  ## Possíveis Erros
+  - 400: Reserva expirada ou userId inválido
+  - 404: Reserva não encontrada
+
+  ## Descrição
+  - Finaliza a compra dos assentos reservados
+  - Retorna os IDs das vendas criadas
+  - Os assentos ficam permanentemente marcados como vendidos
+  - Gera histórico de compra para o usuário
+}
