@@ -1,16 +1,16 @@
 // src/messaging/consumers/expiration.consumer.ts
 import { Injectable, Logger } from '@nestjs/common';
 import { OnQueueFailed, Process, Processor } from '@nestjs/bull';
-import { Job } from 'bull';
+import type { Job } from 'bull';
 import { ReservationExpiredEvent } from '../events';
-import { SeatService } from '../../seat/seat.service';
+import { ChairRepository } from '../../repositories/chair.repository';
 
 @Processor('expiration')
 @Injectable()
 export class ExpirationConsumer {
   private readonly logger = new Logger(ExpirationConsumer.name);
 
-  constructor(private readonly seatService: SeatService) {}
+  constructor(private readonly chairRepository: ChairRepository) {}
 
   @Process('reservation.expired')
   async handleReservationExpired(job: Job<ReservationExpiredEvent>) {
@@ -20,11 +20,7 @@ export class ExpirationConsumer {
 
     try {
       // Liberar assentos reservados
-      await this.seatService.releaseSeats(
-        data.sessionId,
-        data.seatNumbers,
-        data.reservationId,
-      );
+      await this.chairRepository.releaseChairs(data.chairsId);
 
       this.logger.log(
         `Successfully released seats for reservation: ${data.reservationId}`,

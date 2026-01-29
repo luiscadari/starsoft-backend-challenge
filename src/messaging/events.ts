@@ -29,8 +29,8 @@ export interface ReservationCreatedEvent extends BaseEvent {
 export interface PaymentConfirmedEvent extends BaseEvent {
   type: EventType.PAYMENT_CONFIRMED;
   data: {
-    reservationId: string;
-    paymentId: string;
+    reservationId: number;
+    paymentId: number;
     amount: number;
     confirmedAt: Date;
   };
@@ -41,6 +41,6 @@ export interface ReservationExpiredEvent extends BaseEvent {
   data: {
     reservationId: string;
     sessionId: string;
-    seatNumbers: string[];
+    chairsId: number[];
   };
 }

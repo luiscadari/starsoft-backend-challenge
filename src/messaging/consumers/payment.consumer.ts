@@ -1,18 +1,14 @@
 // src/messaging/consumers/payment.consumer.ts
 import { Injectable, Logger } from '@nestjs/common';
 import { EventPattern, Payload } from '@nestjs/microservices';
-import { PaymentConfirmedEvent } from '../events';
-import { ReservationService } from '../../reservation/reservation.service';
-import { TicketService } from '../../ticket/ticket.service';
+import type { PaymentConfirmedEvent } from '../events';
+import { ReservationService } from '../../services/reservation.service';
 
 @Injectable()
 export class PaymentConsumer {
   private readonly logger = new Logger(PaymentConsumer.name);
 
-  constructor(
-    private readonly reservationService: ReservationService,
-    private readonly ticketService: TicketService,
-  ) {}
+  constructor(private readonly reservationService: ReservationService) {}
 
   @EventPattern('payment.confirmed')
   async handlePaymentConfirmed(@Payload() event: PaymentConfirmedEvent) {
@@ -22,14 +18,9 @@ export class PaymentConsumer {
 
     try {
       // 1. Atualizar status da reserva para confirmada
-      await this.reservationService.confirmReservation(
+      await this.reservationService.confirmPayment(
         event.data.reservationId,
         event.data.paymentId,
-      );
-
-      // 2. Gerar ingresso
-      await this.ticketService.createTicketFromReservation(
-        event.data.reservationId,
       );
 
       this.logger.log(
@@ -38,7 +29,7 @@ export class PaymentConsumer {
     } catch (error) {
       this.logger.error(
         `Failed to process payment confirmation: ${event.data.reservationId}`,
-        error.stack,
+        error,
       );
       // Em produção, enviar para DLQ
       throw error;
