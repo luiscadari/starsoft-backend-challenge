@@ -11,6 +11,7 @@ import {
 import { Session } from './session.models';
 import { Chair } from './chairs.models';
 import { User } from './user.models';
+import { ManyToMany } from 'typeorm/browser';
 
 @Entity('reservations')
 @Index(['sessionId', 'chairId'], { unique: true, where: "status = 'active'" })
@@ -21,8 +22,8 @@ export class Reservation {
   @Column({ type: 'int' })
   sessionId: number;
 
-  @Column({ type: 'int' })
-  chairId: number;
+  @Column({ type: 'array' })
+  chairsId: number[];
 
   @Column({ type: 'int' })
   userId: number;
@@ -41,9 +42,9 @@ export class Reservation {
   @JoinColumn({ name: 'sessionId' })
   session: Session;
 
-  @ManyToOne(() => Chair)
-  @JoinColumn({ name: 'chairId' })
-  chair: Chair;
+  @ManyToMany(() => Chair)
+  @JoinColumn({ name: 'chairsId' })
+  chairs: Chair[];
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'userId' })

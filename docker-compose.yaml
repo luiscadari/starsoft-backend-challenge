@@ -58,12 +58,21 @@ services:
     depends_on:
       - db
       - redis
-  elasticmq:
-    image: softwaremill/elasticmq
-    container_name: elastic_mq
+  rabbitmq:
+    image: rabbitmq:3-management
     ports:
-      - 9324:9324
-    restart: always
+      - '5672:5672'
+      - '15672:15672'
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ['CMD', 'rabbitmq-diagnostics', 'ping']
+      interval: 30s
+      timeout: 10s
+      retries: 5
     networks:
       - app-network
 networks:

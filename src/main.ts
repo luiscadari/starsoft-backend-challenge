@@ -3,14 +3,26 @@ import { NestFactory } from '@nestjs/core';
 import 'dotenv/config';
 import 'reflect-metadata';
 import { AppModule } from './app.module';
-import { elasticService } from './services/elastic.service';
+import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
 
   const app = await NestFactory.create(AppModule, {
     logger: ['log', 'error', 'warn', 'debug', 'verbose'],
   });
-
+  const rabbitMqService = NestFactory.createMicroservice<MicroserviceOptions>(
+    AppModule,
+    {
+      transport: Transport.RMQ,
+      options: {
+        urls: ['amqp://localhost:5672'],
+        queue: 'cats_queue',
+        queueOptions: {
+          durable: false,
+        },
+      },
+    },
+  );
   // Habilitar validação global com class-validator
   app.useGlobalPipes(
     new ValidationPipe({

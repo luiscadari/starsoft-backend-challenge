@@ -16,7 +16,7 @@ export class ReservationRepository {
 
   async create(
     sessionId: number,
-    chairId: number,
+    chairsIds: number[],
     userId: number,
   ): Promise<Reservation> {
     const expiresAt = new Date();
@@ -27,7 +27,7 @@ export class ReservationRepository {
 
     const reservation = this.reservationRepository.create({
       sessionId,
-      chairId,
+      chairsIds,
       userId,
       expiresAt,
       status: 'active',
@@ -35,7 +35,7 @@ export class ReservationRepository {
 
     const saved = await this.reservationRepository.save(reservation);
     this.logger.log(
-      `Reserva ${saved.id} criada para o assento ${chairId}, expira em ${expiresAt.toISOString()}`,
+      `Reserva ${saved.id} criada para os assentos ${chairsIds.join(', ')}, expira em ${expiresAt.toISOString()}`,
     );
 
     return saved;
@@ -55,7 +55,7 @@ export class ReservationRepository {
     return this.reservationRepository.findOne({
       where: {
         sessionId,
-        chairId,
+        chairsId: In([chairId]),
         status: 'active',
       },
     });

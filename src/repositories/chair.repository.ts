@@ -26,6 +26,16 @@ export class ChairRepository {
     });
   }
 
+  async releaseChairs(chairsId: number[]): Promise<Chair[]> {
+    const chairs = await this.chairRepository.find({
+      where: { id: In(chairsId) },
+    });
+    for (const chair of chairs) {
+      chair.isAvailable = true;
+    }
+    return this.chairRepository.save(chairs);
+  }
+
   async lockChairsForUpdate(
     chairIds: number[],
     sessionId: number,
