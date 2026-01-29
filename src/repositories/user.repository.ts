@@ -27,8 +27,8 @@ export class UserRepository {
     return saved;
   }
 
-  async exists(id: number): Promise<boolean> {
-    const count = await this.userRepository.count({ where: { id } });
-    return count > 0;
+  async exists(id: number): Promise<User | null> {
+    const user = await this.userRepository.findOne({ where: { id } });
+    return user ? user : null;
   }
 }

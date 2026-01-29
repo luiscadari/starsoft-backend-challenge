@@ -1,22 +1,23 @@
 import {
-  Injectable,
-  ConflictException,
-  NotFoundException,
   BadRequestException,
+  ConflictException,
+  Injectable,
   Logger,
+  NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
-import { SessionRepository } from '../repositories/session.repository';
+import { CreateReservationDto, UserDto } from '../dto/create-reservation.dto';
+import { ReservationResponseDto } from '../dto/reservation-response.dto';
+import { Reservation } from '../models/reservation.models';
+import { Sale } from '../models/sales.models';
+import { User } from '../models/user.models';
 import { ChairRepository } from '../repositories/chair.repository';
 import { ReservationRepository } from '../repositories/reservation.repository';
 import { SaleRepository } from '../repositories/sale.repository';
+import { SessionRepository } from '../repositories/session.repository';
 import { UserRepository } from '../repositories/user.repository';
-import { CreateReservationDto } from '../dto/create-reservation.dto';
-import { ReservationResponseDto } from '../dto/reservation-response.dto';
 import { EventEmitterService } from './event-emitter.service';
-import { Reservation } from '../models/reservation.models';
-import { Sale } from '../models/sales.models';
 
 @Injectable()
 export class ReservationService {
@@ -45,11 +46,20 @@ export class ReservationService {
     if (!sessionExists) {
       throw new NotFoundException(`Sessão ${dto.sessionId} não encontrada`);
     }
-
     // Validar que o usuário existe
-    const userExists = await this.userRepository.exists(dto.userId);
-    if (!userExists) {
-      throw new NotFoundException(`Usuário ${dto.userId} não encontrado`);
+    let user: UserDto | User | null = null;
+    if (dto.userId) {
+      const userExists = await this.userRepository.exists(dto.userId);
+      if (!userExists) {
+        throw new NotFoundException(`Usuário ${dto.userId} não encontrado`);
+      }
+      user = userExists;
+    } else if (!dto.userId) {
+      if (!dto.user)
+        throw new BadRequestException('Dados do usuário são obrigatórios');
+      user = dto.user;
+      user = await this.userRepository.create(user.name, user.cpf);
+      dto.userId = (user as User).id;
     }
 
     const queryRunner = this.dataSource.createQueryRunner();
@@ -74,31 +84,17 @@ export class ReservationService {
       }
 
       // Verificar se algum assento já está vendido
-      const soldChairs = await Promise.all(
-        dto.chairIds.map((chairId) =>
-          this.saleRepository.findBySessionAndChair(dto.sessionId, chairId),
-        ),
-      );
+      const soldChairs = chairs
+        .map((chair) => {
+          if (!chair.isAvailable) {
+            return chair.id;
+          }
+        })
+        .filter((id) => id !== undefined);
 
-      const alreadySold = soldChairs.filter((sale) => sale !== null);
-      if (alreadySold.length > 0) {
-        const soldIds = alreadySold.map((sale) => sale.chairId);
+      if (soldChairs.length > 0) {
         throw new ConflictException(
-          `Assentos já vendidos: ${soldIds.join(', ')}`,
-        );
-      }
-
-      // Verificar se algum assento já tem reserva ativa
-      const activeReservations =
-        await this.reservationRepository.findActiveBySessionAndChairs(
-          dto.sessionId,
-          dto.chairIds,
-        );
-
-      if (activeReservations.length > 0) {
-        const reservedIds = activeReservations.map((r) => r.chairId);
-        throw new ConflictException(
-          `Assentos já reservados: ${reservedIds.join(', ')}. Aguarde a expiração da reserva.`,
+          `Assentos indisponíveis: ${soldChairs.join(', ')}`,
         );
       }
 
@@ -120,7 +116,7 @@ export class ReservationService {
       );
 
       await queryRunner.commitTransaction();
-
+      // TODO: Criar fila assincrona para expirar reservas após 30 segundos
       const firstReservation = reservations[0];
       const expiresAt = new Date(firstReservation.expiresAt);
       const expiresInSeconds = Math.floor(

@@ -1,15 +1,16 @@
 import {
-  Controller,
-  Post,
+  BadRequestException,
   Body,
+  Controller,
   HttpCode,
   HttpStatus,
   Logger,
+  Post,
 } from '@nestjs/common';
-import { ReservationService } from '../services/reservation.service';
-import { CreateReservationDto } from '../dto/create-reservation.dto';
 import { ConfirmPaymentDto } from '../dto/confirm-payment.dto';
+import { CreateReservationDto } from '../dto/create-reservation.dto';
 import { ReservationResponseDto } from '../dto/reservation-response.dto';
+import { ReservationService } from '../services/reservation.service';
 
 @Controller('reservations')
 export class ReservationController {
@@ -32,6 +33,10 @@ export class ReservationController {
     this.logger.log(
       `Requisição para reservar assentos ${createReservationDto.chairIds.join(', ')} na sessão ${createReservationDto.sessionId}`,
     );
+    if (!createReservationDto.userId && !createReservationDto.user)
+      throw new BadRequestException(
+        'Deve ser fornecido userId ou dados do usuário',
+      );
     return this.reservationService.createReservation(createReservationDto);
   }
 

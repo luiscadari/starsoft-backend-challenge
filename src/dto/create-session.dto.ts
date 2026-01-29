@@ -31,7 +31,7 @@ export class CreateSessionDto {
   ticketPrice: number;
 
   @IsNumber()
-  @Min(10)
+  @Min(16)
   @Max(50)
   chairs: number;
   // @IsArray()

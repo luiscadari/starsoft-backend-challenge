@@ -3,6 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import 'dotenv/config';
 import 'reflect-metadata';
 import { AppModule } from './app.module';
+import { elasticService } from './services/elastic.service';
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
 
@@ -24,6 +25,14 @@ async function bootstrap() {
 
   // Habilitar CORS
   app.enableCors();
+
+  // Inicia fila SQS
+  try {
+    await elasticService.createQueueIfNotExists();
+  } catch (e) {
+    console.log(e);
+    throw e;
+  }
 
   const port = process.env.PORT ?? 3000;
   await app.listen(port);

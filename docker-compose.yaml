@@ -58,7 +58,14 @@ services:
     depends_on:
       - db
       - redis
-
+  elasticmq:
+    image: softwaremill/elasticmq
+    container_name: elastic_mq
+    ports:
+      - 9324:9324
+    restart: always
+    networks:
+      - app-network
 networks:
   app-network:
     driver: bridge
