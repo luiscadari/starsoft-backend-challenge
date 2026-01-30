@@ -18,10 +18,10 @@ export interface BaseEvent {
 export interface ReservationCreatedEvent extends BaseEvent {
   type: EventType.RESERVATION_CREATED;
   data: {
-    reservationId: string;
-    sessionId: string;
-    seatNumbers: string[];
-    userId: string;
+    reservationId: number;
+    sessionId: number;
+    seatNumbers: number[];
+    userId: number;
     expiresAt: Date;
   };
 }

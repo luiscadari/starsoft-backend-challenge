@@ -14,13 +14,18 @@ export class CreateReservationDto {
   @IsArray()
   @ArrayMinSize(1, { message: 'Deve haver pelo menos um assento na reserva' })
   @IsNumber({}, { each: true })
-  chairIds: number[];
+  chairsIds: number[];
 
   @IsNumber()
   @IsOptional()
   userId?: number;
   @IsOptional()
   user?: UserDto;
+}
+
+export class ReservationCachingDto extends CreateReservationDto {
+  id: number;
+  expiresAt: Date;
 }
 
 export class UserDto {

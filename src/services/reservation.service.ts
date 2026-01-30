@@ -9,9 +9,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { CreateReservationDto, UserDto } from '../dto/create-reservation.dto';
 import { ReservationResponseDto } from '../dto/reservation-response.dto';
+import { MessagingService } from '../messaging/messaging.service';
 import { Reservation } from '../models/reservation.models';
 import { Sale } from '../models/sales.models';
 import { User } from '../models/user.models';
+import { RedisService } from '../redis/redis.service';
 import { ChairRepository } from '../repositories/chair.repository';
 import { ReservationRepository } from '../repositories/reservation.repository';
 import { SaleRepository } from '../repositories/sale.repository';
@@ -29,6 +31,8 @@ export class ReservationService {
     private readonly chairRepository: ChairRepository,
     private readonly reservationRepository: ReservationRepository,
     private readonly saleRepository: SaleRepository,
+    private readonly redisService: RedisService,
+    private readonly messagingService: MessagingService,
     private readonly userRepository: UserRepository,
     private readonly dataSource: DataSource,
     private readonly eventEmitter: EventEmitterService,
@@ -70,14 +74,14 @@ export class ReservationService {
       // Bloquear os assentos para update (SELECT FOR UPDATE)
       // Isso previne race conditions
       const chairs = await this.chairRepository.lockChairsForUpdate(
-        dto.chairIds,
+        dto.chairsIds,
         dto.sessionId,
       );
 
       // Validar que todos os assentos foram encontrados
-      if (chairs.length !== dto.chairIds.length) {
+      if (chairs.length !== dto.chairsIds.length) {
         const foundIds = chairs.map((c) => c.id);
-        const notFound = dto.chairIds.filter((id) => !foundIds.includes(id));
+        const notFound = dto.chairsIds.filter((id) => !foundIds.includes(id));
         throw new NotFoundException(
           `Assentos não encontrados nesta sessão: ${notFound.join(', ')}`,
         );
@@ -98,47 +102,50 @@ export class ReservationService {
       }
 
       // Criar as reservas
-      const reservations = await Promise.all(
-        dto.chairIds.map((chairId) => {
-          const reservation = this.reservationRepo.create({
-            sessionId: dto.sessionId,
-            chairId,
-            userId: dto.userId,
-            expiresAt: new Date(
-              Date.now() +
-                ReservationService.RESERVATION_EXPIRATION_SECONDS * 1000,
-            ),
-            status: 'active' as const,
-          });
-          return queryRunner.manager.save(reservation);
-        }),
+      const reservation = await this.reservationRepository.create(
+        dto.sessionId,
+        dto.chairsIds,
+        dto.userId,
       );
-
+      // Marcar os assentos como indisponíveis
+      for (const chair of chairs) {
+        chair.isAvailable = false;
+        await queryRunner.manager.save(chair);
+      }
       await queryRunner.commitTransaction();
       // TODO: Criar fila assincrona para expirar reservas após 30 segundos
-      const firstReservation = reservations[0];
+      const firstReservation = reservation;
       const expiresAt = new Date(firstReservation.expiresAt);
       const expiresInSeconds = Math.floor(
         (expiresAt.getTime() - Date.now()) / 1000,
       );
 
-      this.logger.log(
-        `${reservations.length} reservas criadas para a sessão ${dto.sessionId}`,
-      );
+      this.logger.log(`reservas criadas para a sessão ${dto.sessionId}`);
 
       // Emitir evento de reserva criada
-      this.eventEmitter.emitReservationCreated({
-        reservationIds: reservations.map((r) => r.id),
-        sessionId: dto.sessionId,
-        chairIds: dto.chairIds,
-        userId: dto.userId,
+      this.messagingService.publishReservationCreated({
+        reservationId: reservation.id,
+        sessionId: reservation.sessionId,
+        seatNumbers: reservation.chairsIds,
+        userId: reservation.userId,
         expiresAt,
       });
-
+      // Não será mais necessário, pois agora, o rabbitmq cuidará disso
+      // this.eventEmitter.emitReservationCreated({
+      //   reservationIds: reservations.map((r) => r.id),
+      //   sessionId: dto.sessionId,
+      //   chairsIds: dto.chairsIds,
+      //   userId: dto.userId,
+      //   expiresAt,
+      // });
+      // Caching da reserva temporária no Redis
+      await this.redisService.storeTemporaryReservation(reservation.id, {
+        ...reservation,
+      });
       return {
         reservationId: firstReservation.id,
         sessionId: dto.sessionId,
-        chairIds: dto.chairIds,
+        chairsIds: dto.chairsIds,
         userId: dto.userId,
         expiresAt,
         expiresInSeconds,

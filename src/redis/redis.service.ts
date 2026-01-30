@@ -2,6 +2,7 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import Redis from 'ioredis';
 import { v4 as uuidv4 } from 'uuid';
+import { ReservationCachingDto } from '../dto/create-reservation.dto';
 
 @Injectable()
 export class RedisService {
@@ -138,19 +139,24 @@ export class RedisService {
    * Armazena reserva temporária com TTL
    */
   async storeTemporaryReservation(
-    reservationId: string,
-    data: any,
+    reservationId: number,
+    data: ReservationCachingDto,
     ttlSeconds: number = 30,
   ): Promise<void> {
     const key = `reservation:temp:${reservationId}`;
     await this.redis.setex(key, ttlSeconds, JSON.stringify(data));
   }
 
-  async getTemporaryReservation(reservationId: string): Promise<any> {
+  async getTemporaryReservation(
+    reservationId: number,
+  ): Promise<ReservationCachingDto | null> {
     const key = `reservation:temp:${reservationId}`;
     const data = await this.redis.get(key);
-
-    return data ? JSON.parse(data) : null;
+    if (!data) return null;
+    const reservation: ReservationCachingDto = JSON.parse(
+      data,
+    ) as ReservationCachingDto;
+    return reservation;
   }
 
   // ============ RATE LIMITING ============

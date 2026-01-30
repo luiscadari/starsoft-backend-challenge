@@ -1,17 +1,17 @@
 import {
   Column,
-  Entity,
-  PrimaryGeneratedColumn,
-  ManyToOne,
-  JoinColumn,
   CreateDateColumn,
-  UpdateDateColumn,
+  Entity,
   Index,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
-import { Session } from './session.models';
-import { Chair } from './chairs.models';
-import { User } from './user.models';
 import { ManyToMany } from 'typeorm/browser';
+import { Chair } from './chairs.models';
+import { Session } from './session.models';
+import { User } from './user.models';
 
 @Entity('reservations')
 @Index(['sessionId', 'chairId'], { unique: true, where: "status = 'active'" })
@@ -23,12 +23,15 @@ export class Reservation {
   sessionId: number;
 
   @Column({ type: 'array' })
-  chairsId: number[];
+  chairsIds: number[];
 
   @Column({ type: 'int' })
   userId: number;
 
-  @Column({ type: 'timestamp' })
+  @Column({
+    type: 'timestamp',
+    default: () => new Date(new Date().getTime() + 30 * 1000),
+  })
   expiresAt: Date;
 
   @Column({

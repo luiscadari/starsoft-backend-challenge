@@ -1,7 +1,7 @@
 export class ReservationResponseDto {
   reservationId: number;
   sessionId: number;
-  chairIds: number[];
+  chairsIds: number[];
   userId: number;
   expiresAt: Date;
   expiresInSeconds: number;
