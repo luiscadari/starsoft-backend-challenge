@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { SaleRepository } from '../repositories/sale.repository';
 import { PurchaseHistoryDto } from '../dto/purchase-history.dto';
+import { SaleRepository } from '../repositories/sale.repository';
 
 @Injectable()
 export class SaleService {
@@ -17,8 +17,10 @@ export class SaleService {
       movie: sale.session.movie,
       hour: sale.session.hour,
       room: sale.session.room,
-      chairRow: sale.chair.row,
-      chairNumber: sale.chair.number,
+      chairs: sale.chairs.map((chair) => ({
+        row: chair.row,
+        number: chair.number,
+      })),
       value: Number(sale.value),
       purchasedAt: sale.createdAt,
     }));

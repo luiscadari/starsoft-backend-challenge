@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, LessThan, DataSource } from 'typeorm';
+import { DataSource, LessThan, Repository } from 'typeorm';
 import { Reservation } from '../models/reservation.models';
 
 @Injectable()
@@ -55,7 +55,7 @@ export class ReservationRepository {
     return this.reservationRepository.findOne({
       where: {
         sessionId,
-        chairsId: In([chairId]),
+        chairsIds: chairId,
         status: 'active',
       },
     });

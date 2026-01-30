@@ -166,8 +166,11 @@ export class ReservationService {
     reservationId: number,
     userId: number,
   ): Promise<{ success: boolean; saleIds: number[] }> {
-    const reservation =
-      await this.reservationRepository.findById(reservationId);
+    let reservation =
+      await this.redisService.getTemporaryReservation(reservationId);
+    if (!reservation) {
+      reservation = await this.reservationRepository.findById(reservationId);
+    }
 
     if (!reservation) {
       throw new NotFoundException(`Reserva ${reservationId} não encontrada`);
@@ -218,11 +221,18 @@ export class ReservationService {
       }
 
       // Criar vendas para todas as reservas
+      const sale = await this.saleRepository.create({
+        sessionId: reservation.sessionId,
+        chairsIds: reservation.chairsIds,
+        userId: reservation.userId,
+        value: session.ticketPrice,
+        reservationId: reservation.id,
+      });
       const sales = await Promise.all(
         allReservations.map((res) => {
           const sale = this.saleRepo.create({
             sessionId: res.sessionId,
-            chairId: res.chairId,
+            chairsIds: res.chairsIds,
             userId: res.userId,
             value: session.ticketPrice,
             reservationId: res.id,

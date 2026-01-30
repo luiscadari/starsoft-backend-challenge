@@ -1,18 +1,18 @@
 import {
   Column,
-  Entity,
-  PrimaryGeneratedColumn,
-  ManyToOne,
-  JoinColumn,
   CreateDateColumn,
+  Entity,
   Index,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Session } from './session.models';
 import { Chair } from './chairs.models';
+import { Session } from './session.models';
 import { User } from './user.models';
 
 @Entity('sales')
-@Index(['sessionId', 'chairId'], { unique: true })
+@Index(['sessionId', 'chairsIds'], { unique: true })
 export class Sale {
   @PrimaryGeneratedColumn()
   id: number;
@@ -23,8 +23,8 @@ export class Sale {
   @Column({ type: 'int' })
   sessionId: number;
 
-  @Column({ type: 'int' })
-  chairId: number;
+  @Column({ type: 'int', array: true })
+  chairsIds: number[];
 
   @Column({ type: 'int' })
   userId: number;
@@ -37,8 +37,8 @@ export class Sale {
   session: Session;
 
   @ManyToOne(() => Chair)
-  @JoinColumn({ name: 'chairId' })
-  chair: Chair;
+  @JoinColumn({ name: 'chairsIds' })
+  chairs: Chair[];
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'userId' })

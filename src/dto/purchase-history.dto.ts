@@ -4,8 +4,7 @@ export class PurchaseHistoryDto {
   movie: string;
   hour: Date;
   room: string;
-  chairRow: string;
-  chairNumber: number;
+  chairs: { row: string; number: number }[];
   value: number;
   purchasedAt: Date;
 }

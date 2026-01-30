@@ -26,6 +26,7 @@ export class CreateReservationDto {
 export class ReservationCachingDto extends CreateReservationDto {
   id: number;
   expiresAt: Date;
+  status: 'active' | 'confirmed' | 'expired' | 'cancelled';
 }
 
 export class UserDto {
