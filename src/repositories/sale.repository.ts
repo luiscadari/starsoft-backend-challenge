@@ -14,14 +14,14 @@ export class SaleRepository {
 
   async create(
     sessionId: number,
-    chairId: number,
+    chairsIds: number[],
     userId: number,
     value: number,
     reservationId?: number,
   ): Promise<Sale> {
     const sale = this.saleRepository.create({
       sessionId,
-      chairId,
+      chairsIds,
       userId,
       value,
       reservationId,
@@ -29,7 +29,7 @@ export class SaleRepository {
 
     const saved = await this.saleRepository.save(sale);
     this.logger.log(
-      `Venda ${saved.id} criada para o assento ${chairId} no valor de R$ ${value}`,
+      `Venda ${saved.id} criada para os assentos ${chairsIds.join(', ')} no valor de R$ ${value}`,
     );
 
     return saved;
@@ -48,14 +48,14 @@ export class SaleRepository {
     chairId: number,
   ): Promise<Sale | null> {
     return this.saleRepository.findOne({
-      where: { sessionId, chairId },
+      where: { sessionId, chairsIds: chairId },
     });
   }
 
   async findBySessionId(sessionId: number): Promise<Sale[]> {
     return this.saleRepository.find({
       where: { sessionId },
-      relations: ['chair'],
+      relations: ['chairs'],
     });
   }
 }

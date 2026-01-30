@@ -221,24 +221,12 @@ export class ReservationService {
       }
 
       // Criar vendas para todas as reservas
-      const sale = await this.saleRepository.create({
-        sessionId: reservation.sessionId,
-        chairsIds: reservation.chairsIds,
-        userId: reservation.userId,
-        value: session.ticketPrice,
-        reservationId: reservation.id,
-      });
-      const sales = await Promise.all(
-        allReservations.map((res) => {
-          const sale = this.saleRepo.create({
-            sessionId: res.sessionId,
-            chairsIds: res.chairsIds,
-            userId: res.userId,
-            value: session.ticketPrice,
-            reservationId: res.id,
-          });
-          return queryRunner.manager.save(sale);
-        }),
+      const sale = await this.saleRepository.create(
+        reservation.sessionId,
+        reservation.chairsIds,
+        reservation.userId,
+        session.ticketPrice,
+        reservation.id,
       );
 
       // Confirmar todas as reservas
@@ -251,21 +239,20 @@ export class ReservationService {
       await queryRunner.commitTransaction();
 
       this.logger.log(
-        `Pagamento confirmado para ${sales.length} assentos. Vendas: ${sales.map((s) => s.id).join(', ')}`,
+        `Pagamento confirmado para ${reservation.sessionId} assentos. Vendas: ${reservation.chairsIds.join(', ')}`,
       );
 
       // Emitir evento de pagamento confirmado
-      this.eventEmitter.emitPaymentConfirmed({
-        reservationIds: allReservations.map((r) => r.id),
-        saleIds: sales.map((s) => s.id),
-        sessionId: reservation.sessionId,
-        userId: reservation.userId,
-        totalValue: sales.reduce((sum, sale) => sum + Number(sale.value), 0),
+      this.messagingService.publishPaymentConfirmed({
+        reservationId: reservation.id,
+        paymentId: sale.id,
+        amount: sale.value,
+        confirmedAt: new Date(),
       });
 
       return {
         success: true,
-        saleIds: sales.map((s) => s.id),
+        saleIds: [sale.id],
       };
     } catch (error) {
       await queryRunner.rollbackTransaction();
@@ -297,10 +284,10 @@ export class ReservationService {
 
     // Emitir eventos de reservas expiradas
     expiredReservations.forEach((reservation) => {
-      this.eventEmitter.emitReservationExpired({
+      this.messagingService.publishReservationExpired({
         reservationId: reservation.id,
         sessionId: reservation.sessionId,
-        chairId: reservation.chairId,
+        chairsIds: reservation.chairsIds,
       });
     });
 

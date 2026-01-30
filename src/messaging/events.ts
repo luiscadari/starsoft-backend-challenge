@@ -41,6 +41,6 @@ export interface ReservationExpiredEvent extends BaseEvent {
   data: {
     reservationId: number;
     sessionId: number;
-    chairsId: number[];
+    chairsIds: number[];
   };
 }

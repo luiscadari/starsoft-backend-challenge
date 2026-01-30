@@ -31,7 +31,7 @@ export class ReservationController {
     @Body() createReservationDto: CreateReservationDto,
   ): Promise<ReservationResponseDto> {
     this.logger.log(
-      `Requisição para reservar assentos ${createReservationDto.chairIds.join(', ')} na sessão ${createReservationDto.sessionId}`,
+      `Requisição para reservar assentos ${createReservationDto.chairsIds.join(', ')} na sessão ${createReservationDto.sessionId}`,
     );
     if (!createReservationDto.userId && !createReservationDto.user)
       throw new BadRequestException(
