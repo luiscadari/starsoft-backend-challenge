@@ -1,18 +1,25 @@
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import 'dotenv/config';
 import 'reflect-metadata';
 import { AppModule } from './app.module';
-import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
 
   const app = await NestFactory.create(AppModule, {
     logger: ['log', 'error', 'warn', 'debug', 'verbose'],
   });
-  const rabbitMqService = NestFactory.createMicroservice<MicroserviceOptions>(
-    AppModule,
-    {
+  const redisService =
+    await NestFactory.createMicroservice<MicroserviceOptions>(AppModule, {
+      transport: Transport.REDIS,
+      options: {
+        host: 'localhost',
+        port: 6379,
+      },
+    });
+  const rabbitMqService =
+    await NestFactory.createMicroservice<MicroserviceOptions>(AppModule, {
       transport: Transport.RMQ,
       options: {
         urls: ['amqp://localhost:5672'],
@@ -21,8 +28,8 @@ async function bootstrap() {
           durable: false,
         },
       },
-    },
-  );
+    });
+
   // Habilitar validação global com class-validator
   app.useGlobalPipes(
     new ValidationPipe({
@@ -38,9 +45,12 @@ async function bootstrap() {
   // Habilitar CORS
   app.enableCors();
 
-  // Inicia fila SQS
+  // Inicia microsserviços
   try {
-    await elasticService.createQueueIfNotExists();
+    await redisService.listen();
+    logger.log('Microservice Redis rodando...');
+    await rabbitMqService.listen();
+    logger.log('Microservice RabbitMQ rodando...');
   } catch (e) {
     console.log(e);
     throw e;

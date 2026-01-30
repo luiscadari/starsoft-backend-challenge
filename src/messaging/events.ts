@@ -39,8 +39,8 @@ export interface PaymentConfirmedEvent extends BaseEvent {
 export interface ReservationExpiredEvent extends BaseEvent {
   type: EventType.RESERVATION_EXPIRED;
   data: {
-    reservationId: string;
-    sessionId: string;
+    reservationId: number;
+    sessionId: number;
     chairsId: number[];
   };
 }

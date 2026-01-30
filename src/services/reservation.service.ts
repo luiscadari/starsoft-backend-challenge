@@ -82,7 +82,6 @@ export class ReservationService {
           `Assentos não encontrados nesta sessão: ${notFound.join(', ')}`,
         );
       }
-
       // Verificar se algum assento já está vendido
       const soldChairs = chairs
         .map((chair) => {
